@@ -223,27 +223,3 @@ Dan will read this before every conversation."
     </div>
   );
 }
-        </div>
-        
-        <p className="text-sm text-muted-foreground">
-          Update the profile text below. The chatbot uses this information to personalize responses.
-        </p>
-
-        <textarea
-          value={profileText}
-          onChange={(e) => setProfileText(e.target.value)}
-          className="min-h-[400px] w-full resize-none rounded-md border border-input bg-background p-4 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          placeholder="Enter profile text..."
-        />
-
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="w-[150px] self-end rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        >
-          {isSaving ? "Saving..." : "Save Profile"}
-        </button>
-      </div>
-    </div>
-  );
-}

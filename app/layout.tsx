@@ -1,22 +1,21 @@
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { ReactNode } from "react"
-import { Toaster } from "@/components/ui/toaster"
+import type { Metadata } from "next";
+import { ReactNode } from "react";
+import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
+import AuthGuard from "@/components/auth/AuthGuard";
 
-const inter = Inter({ subsets: ["latin"] })
-
-export const metadata = {
-  title: "Dan Peña QLA Chatbot",
-  description: "Private AI Chatbot",
-}
+export const metadata: Metadata = {
+  title: "QLA Mentor | Melsoft Holdings",
+  description: "Private AI Mentorship - Dan Peña QLA Methodology",
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.className} bg-background text-foreground h-screen flex flex-col overflow-hidden`}>
-        {children}
+      <body className="bg-background text-foreground h-screen flex flex-col overflow-hidden">
+        <AuthGuard>{children}</AuthGuard>
         <Toaster />
       </body>
     </html>
-  )
+  );
 }

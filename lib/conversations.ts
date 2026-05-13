@@ -7,8 +7,8 @@ export interface Message {
   content: string;
   sources?: Array<{
     title: string;
-    url?: string;
-    source_type: "book" | "youtube" | "website";
+    url?: string | null;
+    source_type: "book" | "youtube" | "website" | "unknown";
   }>;
 }
 

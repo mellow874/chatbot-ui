@@ -203,7 +203,7 @@ function WelcomeOverlay() {
             borderRight: step >= 2 ? "2px solid var(--orange)" : "none",
           }}
         >
-          Pour yourself a coffee. Let's build an empire.
+          Pour yourself a coffee. Let&apos;s build an empire.
         </p>
       </div>
 

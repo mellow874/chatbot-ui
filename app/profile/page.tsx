@@ -6,7 +6,7 @@ import { ArrowLeft, Check } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
 import Sidebar from "@/components/chat/Sidebar";
 import { Conversation, getConversations, getActiveConversationId } from "@/lib/conversations";
-import { mockGetProfile, mockPutProfile } from "@/lib/mockBackend";
+import { getProfile, updateProfile } from "@/lib/api";
 
 export default function ProfilePage() {
   const [profileText, setProfileText] = useState("");
@@ -27,25 +27,9 @@ export default function ProfilePage() {
     // Load profile from backend
     const loadProfile = async () => {
       try {
-        const useMock = process.env.NEXT_PUBLIC_USE_MOCK === "true";
-        let data;
-
-        if (useMock) {
-          data = await mockGetProfile();
-        } else {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"}/profile`,
-            {
-              headers: {
-                Authorization: `Bearer ${process.env.NEXT_PUBLIC_APP_PASSWORD}`,
-              },
-            }
-          );
-          data = await res.json();
-        }
-
-        if (data?.profile_text) {
-          setProfileText(data.profile_text);
+        const text = await getProfile();
+        if (text) {
+          setProfileText(text);
         }
       } catch (err) {
         console.error("Failed to load profile", err);
@@ -60,25 +44,8 @@ export default function ProfilePage() {
     setSaveStatus("idle");
 
     try {
-      const useMock = process.env.NEXT_PUBLIC_USE_MOCK === "true";
-
-      if (useMock) {
-        await mockPutProfile(profileText);
-      } else {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"}/profile`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_APP_PASSWORD}`,
-            },
-            body: JSON.stringify({ profile_text: profileText }),
-          }
-        );
-
-        if (!res.ok) throw new Error("Failed to save");
-      }
+      const success = await updateProfile(profileText);
+      if (!success) throw new Error("Failed to save");
 
       setSaveStatus("success");
       setTimeout(() => setSaveStatus("idle"), 2000);

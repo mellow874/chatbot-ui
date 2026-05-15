@@ -22,7 +22,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-background">
+    <div className="flex h-screen w-screen overflow-hidden" style={{ background: "var(--void)" }}>
       {/* Sidebar */}
       <Sidebar
         conversations={conversations}

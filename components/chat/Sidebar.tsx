@@ -1,45 +1,21 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Plus, Menu, X, LogOut, User, ChevronLeft, ChevronRight, Settings } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Menu, X, LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { logout } from "@/lib/auth";
 import { Conversation } from "@/lib/conversations";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useSidebar } from "@/context/SidebarContext";
 
 interface SidebarProps {
   conversations: Conversation[];
   activeId: string | null;
   onNewChat: () => void;
   onSelectConversation: (id: string) => void;
-  isOpen: boolean;
-  onToggle: () => void;
+  isOpen?: boolean; // legacy mobile open state
+  onToggle?: () => void; // legacy mobile toggle
 }
-
-// ── Recency grouping helpers ────────────────────────────────────────
-function getRecencyGroup(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const weekAgo = new Date(today);
-  weekAgo.setDate(weekAgo.getDate() - 7);
-
-  if (date >= today) return "Today";
-  if (date >= yesterday) return "Yesterday";
-  if (date >= weekAgo) return "Previous 7 Days";
-  return "Older";
-}
-
-const GROUP_ORDER = ["Today", "Yesterday", "Previous 7 Days", "Older"];
 
 export default function Sidebar({
   conversations,
@@ -50,9 +26,8 @@ export default function Sidebar({
   onToggle,
 }: SidebarProps) {
   const router = useRouter();
+  const { collapsed, setCollapsed } = useSidebar();
   const [isMobile, setIsMobile] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [plusHovered, setPlusHovered] = useState(false);
 
   // Check mobile
   useEffect(() => {
@@ -62,400 +37,169 @@ export default function Sidebar({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Persist collapse preference
-  useEffect(() => {
-    const saved = localStorage.getItem("qla_sidebar_collapsed");
-    if (saved === "true") setIsCollapsed(true);
-  }, []);
-
-  const toggleCollapse = () => {
-    const next = !isCollapsed;
-    setIsCollapsed(next);
-    localStorage.setItem("qla_sidebar_collapsed", String(next));
-  };
-
-  // ⌘N keyboard shortcut for new chat
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "n") {
-        e.preventDefault();
-        onNewChat();
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [onNewChat]);
-
   const handleLogout = () => {
     if (window.confirm("Sign out?")) {
       logout();
+      router.push("/login");
     }
   };
 
-  // Group conversations by recency
-  // TODO: Use updatedAt when the Conversation type adds it; using createdAt for now
-  const grouped = useMemo(() => {
-    const groups: Record<string, Conversation[]> = {};
-    conversations.forEach((conv) => {
-      const group = getRecencyGroup(conv.createdAt);
-      if (!groups[group]) groups[group] = [];
-      groups[group].push(conv);
-    });
-    return groups;
-  }, [conversations]);
-
-  const sidebarWidth = isMobile ? 240 : isCollapsed ? 64 : 240;
-  const showLabels = isMobile || !isCollapsed;
+  const sessions = conversations.slice(0, 7); // Show limited dots in rail
 
   return (
     <>
-      {/* Sidebar */}
-      <aside
-        className="flex flex-col h-screen z-40 flex-shrink-0 overflow-hidden"
-        style={{
-          width: isMobile ? 240 : sidebarWidth,
-          background: "var(--grad-sidebar)",
-          borderRight: "1px solid var(--hairline)",
-          boxShadow: "1px 0 40px -20px var(--violet-glow)",
-          transition: isMobile ? "transform 320ms var(--ease-out-expo)" : "width 280ms var(--ease-out-expo)",
-          transform: isMobile ? (isOpen ? "translateX(0)" : "translateX(-100%)") : "none",
-          position: isMobile ? "fixed" : "relative",
-          top: 0,
-          left: 0,
-          bottom: 0,
+      {/* Mobile backdrop */}
+      {isMobile && isOpen && (
+        <div
+          className="fixed inset-0 z-30 md:hidden bg-black/50 backdrop-blur-sm"
+          onClick={onToggle}
+          aria-hidden="true"
+        />
+      )}
+
+      <motion.div
+        className="relative z-40 flex flex-col h-full bg-[#0a0a0f] border-r border-white/[0.04] overflow-hidden"
+        initial={false}
+        animate={{ 
+          width: isMobile ? (isOpen ? 240 : 0) : (collapsed ? 48 : 240) 
         }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        onHoverStart={() => !isMobile && collapsed && setCollapsed(false)}
+        onHoverEnd={() => !isMobile && !collapsed && router.pathname === '/profile' && setCollapsed(true)} 
+        // Note: I'll use the profile-specific collapse in the page component instead of router.pathname check here for simplicity
       >
-        {/* ── Logo block ─────────────────────────────────── */}
-        <div
-          className="flex items-center gap-3 px-4 py-4"
-          style={{
-            borderBottom: "1px solid var(--hairline)",
-            minHeight: "64px",
-          }}
-        >
-          {/* Monogram tile */}
-          <div
-            className="flex items-center justify-center flex-shrink-0"
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "8px",
-              background: "var(--obsidian-3)",
-            }}
-          >
-            <img 
-              src="/brand/logo.png" 
-              alt="QLA" 
-              className="w-7 h-7 object-contain opacity-90" 
-              style={{ mixBlendMode: 'screen' }}
-            />
-          </div>
-
-          {/* Brand text */}
-          {showLabels && (
-            <div className="overflow-hidden">
-              <div
-                className="font-display text-sm font-semibold"
-                style={{ color: "var(--ink-100)" }}
-              >
-                QLA Mentor
-              </div>
-              <div
-                className="font-mono text-[9px] uppercase"
-                style={{
-                  color: "var(--ink-30)",
-                  letterSpacing: "0.15em",
-                }}
-              >
-                MELSOFT · QLA
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ── New Chat button ────────────────────────────── */}
-        <div className="px-3 py-3" style={{ borderBottom: "1px solid var(--hairline)" }}>
-          <button
-            onClick={() => {
-              onNewChat();
-              if (isMobile) onToggle();
-            }}
-            className="w-full flex items-center justify-center gap-2 rounded-lg transition-all duration-200 text-sm"
-            style={{
-              border: "1px solid var(--hairline-bright)",
-              background: "transparent",
-              color: "var(--ink-70)",
-              padding: showLabels ? "8px 12px" : "8px",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "var(--obsidian-3)";
-              e.currentTarget.style.borderColor = "rgba(167, 139, 250, 0.4)";
-              setPlusHovered(true);
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.borderColor = "var(--hairline-bright)";
-              setPlusHovered(false);
-            }}
-            aria-label="New chat"
-          >
+        <AnimatePresence mode="wait">
+          {collapsed && !isMobile ? (
             <motion.div
-              animate={{ rotate: plusHovered ? 90 : 0 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              key="collapsed"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center h-full py-6 gap-8"
             >
-              <Plus size={16} />
-            </motion.div>
-            {showLabels && (
-              <>
-                <span>New Chat</span>
-                <span
-                  className="ml-auto font-mono text-[10px]"
-                  style={{ color: "var(--ink-30)" }}
-                >
-                  ⌘N
-                </span>
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* ── Conversations list ─────────────────────────── */}
-        <div className="flex-1 overflow-y-auto px-2 py-3">
-          {conversations.length === 0 ? (
-            <p
-              className="text-xs px-3 py-4 italic"
-              style={{ color: "var(--ink-30)" }}
-            >
-              {showLabels ? "No conversations yet. Start a new chat." : ""}
-            </p>
-          ) : (
-            GROUP_ORDER.map((group) => {
-              const items = grouped[group];
-              if (!items || items.length === 0) return null;
-
-              return (
-                <div key={group} className="mb-3">
-                  {/* Section header */}
-                  {showLabels && (
-                    <div
-                      className="font-mono uppercase px-3 pt-2 pb-1.5"
-                      style={{
-                        fontSize: "10px",
-                        color: "var(--ink-30)",
-                        letterSpacing: "0.2em",
-                      }}
-                    >
-                      {group}
-                    </div>
-                  )}
-
-                  {/* Conversation items */}
-                  {items.map((conv) => {
-                    const isActive = activeId === conv.id;
-                    return (
-                      <button
-                        key={conv.id}
-                        onClick={() => {
-                          onSelectConversation(conv.id);
-                          if (isMobile) onToggle();
-                        }}
-                        className="w-full text-left rounded-lg transition-all duration-150 flex items-center gap-2 group"
-                        style={{
-                          padding: showLabels ? "6px 10px" : "6px",
-                          justifyContent: showLabels ? "flex-start" : "center",
-                          background: isActive
-                            ? "rgba(124, 58, 237, 0.10)"
-                            : "transparent",
-                          color: isActive
-                            ? "var(--ink-100)"
-                            : "var(--ink-70)",
-                          fontSize: "13px",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isActive) {
-                            e.currentTarget.style.background = "rgba(124, 58, 237, 0.06)";
-                            e.currentTarget.style.color = "var(--ink-100)";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isActive) {
-                            e.currentTarget.style.background = "transparent";
-                            e.currentTarget.style.color = "var(--ink-70)";
-                          }
-                        }}
-                        title={conv.title}
-                      >
-                        {/* Violet dot indicator */}
-                        <div
-                          className="flex-shrink-0 rounded-full transition-all duration-200"
-                          style={{
-                            width: "6px",
-                            height: "6px",
-                            background: isActive ? "var(--violet-mist)" : "transparent",
-                            transform: isActive ? "scale(1)" : "scale(0)",
-                            boxShadow: isActive
-                              ? "0 0 6px rgba(167, 139, 250, 0.8)"
-                              : "none",
-                            opacity: isActive ? 0.8 : 0,
-                          }}
-                        />
-
-                        {/* Title */}
-                        {showLabels && (
-                          <span className="truncate flex-1">{conv.title}</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* ── Bottom section ─────────────────────────────── */}
-        <div
-          className="mt-auto"
-          style={{ borderTop: "1px solid var(--hairline)" }}
-        >
-          {/* Profile dropdown */}
-          <div className="px-3 py-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="w-full flex items-center gap-2.5 rounded-lg transition-colors duration-150 px-2 py-2"
-                  style={{ color: "var(--ink-70)" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(124, 58, 237, 0.06)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                  }}
-                  aria-label="User menu"
-                >
-                  {/* Avatar */}
-                  <div
-                    className="flex items-center justify-center flex-shrink-0 font-display"
-                    style={{
-                      width: "28px",
-                      height: "28px",
-                      borderRadius: "50%",
-                      background: "var(--obsidian-3)",
-                      color: "var(--ink-100)",
-                      fontSize: "13px",
-                      fontWeight: 600,
-                    }}
-                  >
-                    L
-                  </div>
-                  {showLabels && (
-                    <span className="text-sm truncate flex-1 text-left">
-                      Larreth
-                    </span>
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent
-                side="top"
-                align="start"
-                sideOffset={8}
-                className="w-48"
-                style={{
-                  background: "var(--obsidian-2)",
-                  border: "1px solid var(--hairline-bright)",
-                  borderRadius: "12px",
-                }}
+              {/* Logo dot */}
+              <div className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.4)]" />
+              
+              {/* New session */}
+              <button 
+                onClick={onNewChat}
+                className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white/80 hover:border-white/20 transition-colors"
               >
-                <DropdownMenuItem
-                  onClick={() => {
-                    router.push("/profile");
-                    if (isMobile) onToggle();
-                  }}
-                  className="cursor-pointer rounded-md px-3 py-2 text-sm transition-colors"
-                  style={{ color: "var(--ink-70)" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "var(--ink-100)";
-                    e.currentTarget.style.background = "rgba(124, 58, 237, 0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "var(--ink-70)";
-                    e.currentTarget.style.background = "transparent";
-                  }}
-                >
-                  <User size={14} className="mr-2" />
-                  Profile
-                </DropdownMenuItem>
+                <Plus size={12} />
+              </button>
 
-                <DropdownMenuItem
-                  className="cursor-pointer rounded-md px-3 py-2 text-sm transition-colors"
-                  style={{ color: "var(--ink-70)" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "var(--ink-100)";
-                    e.currentTarget.style.background = "rgba(124, 58, 237, 0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "var(--ink-70)";
-                    e.currentTarget.style.background = "transparent";
-                  }}
-                >
-                  <Settings size={14} className="mr-2" />
-                  Settings
-                  {/* TODO: Wire settings page */}
-                </DropdownMenuItem>
+              {/* Session dots */}
+              <div className="flex flex-col gap-3 flex-1 items-center pt-2">
+                {conversations.map((conv, i) => (
+                  <div 
+                    key={conv.id} 
+                    onClick={() => onSelectConversation(conv.id)}
+                    className={`w-1.5 h-1.5 rounded-full transition-colors cursor-pointer ${
+                      activeId === conv.id ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)]' : 'bg-white/10 hover:bg-white/40'
+                    }`}
+                  />
+                ))}
+              </div>
 
-                <DropdownMenuSeparator
-                  style={{ background: "var(--hairline)" }}
+              {/* Bottom icons */}
+              <div className="flex flex-col gap-4 items-center mb-2">
+                <User 
+                  size={14} 
+                  className="text-white/30 hover:text-white/70 cursor-pointer transition-colors" 
+                  onClick={() => router.push('/profile')}
                 />
-
-                <DropdownMenuItem
+                <LogOut 
+                  size={14} 
+                  className="text-white/30 hover:text-white/70 cursor-pointer transition-colors" 
                   onClick={handleLogout}
-                  className="cursor-pointer rounded-md px-3 py-2 text-sm transition-colors"
-                  style={{ color: "var(--ink-70)" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = "#ef4444";
-                    e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = "var(--ink-70)";
-                    e.currentTarget.style.background = "transparent";
-                  }}
-                >
-                  <LogOut size={14} className="mr-2" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Collapse toggle (desktop only) */}
-          {!isMobile && (
-            <button
-              onClick={toggleCollapse}
-              className="w-full flex items-center justify-center py-2 transition-colors duration-150"
-              style={{
-                borderTop: "1px solid var(--hairline)",
-                color: "var(--ink-30)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--ink-70)";
-                e.currentTarget.style.background = "rgba(124, 58, 237, 0.04)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "var(--ink-30)";
-                e.currentTarget.style.background = "transparent";
-              }}
-              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                />
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="expanded"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col h-full w-[240px]"
             >
-              {isCollapsed ? (
-                <ChevronRight size={16} />
-              ) : (
-                <ChevronLeft size={16} />
-              )}
-            </button>
+              {/* HEADER */}
+              <div className="px-6 py-6 border-b border-white/[0.04]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-serif italic text-xl text-white/90">QLA</p>
+                    <p className="text-[9px] tracking-[0.2em] font-mono uppercase text-white/30 mt-0.5">
+                      MENTOR · VAULT
+                    </p>
+                  </div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.4)]" />
+                </div>
+              </div>
+
+              {/* NEW SESSION */}
+              <div className="px-4 py-4 border-b border-white/[0.04]">
+                <button
+                  onClick={onNewChat}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg border border-white/10 text-white/60 hover:text-white/90 hover:bg-white/[0.02] hover:border-white/20 transition-all group"
+                >
+                  <Plus size={14} className="text-white/40 group-hover:text-white/80" />
+                  <span className="text-[11px] font-mono uppercase tracking-wider">New session</span>
+                </button>
+              </div>
+
+              {/* SESSIONS LEDGER */}
+              <div className="flex-1 overflow-y-auto py-4 px-2 scrollbar-hide">
+                <p className="px-4 text-[9px] font-mono uppercase tracking-[0.2em] text-white/20 mb-4">
+                  History
+                </p>
+                {conversations.map((conv, index) => {
+                  const isActive = activeId === conv.id;
+                  const displayNum = String(conversations.length - index).padStart(2, "0");
+
+                  return (
+                    <button
+                      key={conv.id}
+                      onClick={() => onSelectConversation(conv.id)}
+                      className={`w-full flex items-baseline gap-4 px-4 py-3 text-left rounded-lg transition-all mb-1 group ${
+                        isActive ? 'bg-white/[0.04]' : 'hover:bg-white/[0.02]'
+                      }`}
+                    >
+                      <span className={`font-mono text-[10px] flex-none ${
+                        isActive ? 'text-indigo-400' : 'text-white/20 group-hover:text-white/40'
+                      }`}>
+                        {displayNum}
+                      </span>
+                      <span className={`text-[12px] truncate ${
+                        isActive ? 'text-white/90' : 'text-white/40 group-hover:text-white/60'
+                      }`}>
+                        {conv.title}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* FOOTER */}
+              <div className="px-4 py-4 border-t border-white/[0.04] space-y-1">
+                <button
+                  onClick={() => router.push("/profile")}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/[0.02] transition-all"
+                >
+                  <User size={14} />
+                  <span className="text-[10px] font-mono uppercase tracking-wider">Profile</span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-white/40 hover:text-danger hover:bg-danger/5 transition-all"
+                >
+                  <LogOut size={14} />
+                  <span className="text-[10px] font-mono uppercase tracking-wider">Sign out</span>
+                </button>
+              </div>
+            </motion.div>
           )}
-        </div>
-      </aside>
+        </AnimatePresence>
+      </motion.div>
     </>
   );
 }

@@ -2,21 +2,28 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MessageSquare } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
+import { motion } from "framer-motion";
 import Sidebar from "@/components/chat/Sidebar";
-import QLAJourney from "@/components/profile/QLAJourney";
+import { Spotlight } from "@/components/ui/spotlight";
+import { SplineScene } from "@/components/ui/splite";
 import { Conversation, getConversations, getActiveConversationId } from "@/lib/conversations";
 import { getProfile, updateProfile } from "@/lib/api";
+import { useSidebar } from "@/context/SidebarContext";
 
 export default function ProfilePage() {
   const [profileText, setProfileText] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const router = useRouter();
+  const { setCollapsed } = useSidebar();
+
+  // Auto-collapse sidebar on mount, restore on unmount
+  useEffect(() => {
+    setCollapsed(true);
+    return () => setCollapsed(false);
+  }, [setCollapsed]);
 
   useEffect(() => {
     setConversations(getConversations());
@@ -35,127 +42,156 @@ export default function ProfilePage() {
     loadProfile();
   }, []);
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    setSaveStatus("idle");
+  const handleSave = async (text: string) => {
+    setProfileText(text);
     try {
-      const success = await updateProfile(profileText);
-      if (!success) throw new Error("Failed to save");
-      setSaveStatus("success");
-      setTimeout(() => setSaveStatus("idle"), 2000);
+      await updateProfile(text);
     } catch (err) {
       console.error("Error saving profile:", err);
-      setSaveStatus("error");
-      setTimeout(() => setSaveStatus("idle"), 3000);
-    } finally {
-      setIsSaving(false);
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 16 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
     }
   };
 
   return (
-    <div className="flex h-screen w-screen bg-transparent overflow-hidden">
+    <div className="flex h-screen w-screen bg-[#08090f] overflow-hidden">
       <Sidebar
         conversations={conversations}
         activeId={activeId}
         onNewChat={() => router.push("/")}
-        onSelectConversation={() => router.push("/")}
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
+        onSelectConversation={(id) => {
+          router.push("/");
+        }}
       />
 
-      {/* Main scroll area - overflow visible to allow labels to float out */}
-      <main className="flex-1 overflow-y-auto relative custom-scrollbar overflow-x-visible">
-        <div className="flex flex-col lg:flex-row min-h-full overflow-visible">
-          
-          {/* Left Column: User identity panel (40%) */}
-          <div className="w-full lg:w-[40%] px-4 md:px-8 py-8 lg:border-r border-[var(--hairline)] overflow-visible">
-            <div className="flex items-center gap-4 mb-12">
-              <button
-                onClick={() => router.push("/")}
-                className="p-2 hover:bg-[var(--obsidian-3)] rounded-lg transition-colors text-[var(--ink-50)] hover:text-[var(--ember)]"
-              >
-                <ArrowLeft size={24} />
-              </button>
-              <div>
-                <h1 className="font-display text-3xl font-bold text-[var(--ink-100)]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-                  The Vault
-                </h1>
-                <p className="text-[var(--ink-50)] text-xs font-mono uppercase tracking-widest mt-1">
-                  Private Profile · Dan Peña QLA
-                </p>
-              </div>
-            </div>
+      <div className="flex flex-1 h-full overflow-hidden">
+        
+        {/* LEFT PANEL — SCROLLABLE */}
+        <div className="flex-1 h-full overflow-y-auto scrollbar-hide px-12 py-16 bg-[#08090f] relative">
+          <motion.div 
+            className="max-w-2xl mx-auto flex flex-col"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+          >
+            {/* Back Button */}
+            <motion.button
+              variants={itemVariants}
+              onClick={() => router.push("/")}
+              className="w-fit p-2 -ml-2 mb-8 hover:bg-white/5 rounded-full transition-colors text-white/40 hover:text-white/80"
+            >
+              <ArrowLeft size={20} />
+            </motion.button>
 
-            {/* Identity Card */}
-            <div className="mb-10">
-              <div className="flex items-center gap-6 mb-8">
-                <div 
-                  className="w-24 h-24 rounded-3xl bg-[var(--obsidian-3)] border border-[var(--hairline-bright)] flex items-center justify-center shadow-2xl"
-                >
-                  <span className="text-4xl font-display font-bold text-[var(--ink-100)]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-                    L
-                  </span>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-display font-bold text-[var(--ink-100)]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-                    Larreth Jimu
-                  </h2>
-                  <p className="text-[var(--ink-50)] text-sm mb-2">CEO, Melsoft Holdings</p>
-                  <div className="flex items-center gap-2 text-[var(--ember)] font-mono text-[10px] uppercase tracking-wider">
-                    <MessageSquare size={12} />
-                    <span>Conversations: {conversations.length}</span>
-                  </div>
-                </div>
-              </div>
+            {/* TOP SECTION */}
+            <motion.div variants={itemVariants} className="mb-12">
+              <p className="text-white/30 text-[10px] tracking-[0.35em] font-mono uppercase mb-6">
+                PRIVATE PROFILE · THE VAULT
+              </p>
+              <h1 className="font-serif italic text-4xl md:text-5xl text-white/90 leading-tight">
+                Larreth Jimu
+              </h1>
+              <p className="text-white/30 text-[11px] tracking-[0.3em] font-mono uppercase mt-2">
+                CEO, Melsoft Holdings
+              </p>
+            </motion.div>
 
-              <div className="space-y-1 text-xs font-mono text-[var(--ink-30)]">
-                <p>MEMBER SINCE: MAY 2024</p>
-                <p>ID: QLA-772-ALFA</p>
-              </div>
-            </div>
+            <motion.div variants={itemVariants} className="w-full h-px bg-white/10 my-8" />
 
-            {/* Profile Document */}
-            <div className="space-y-4">
-              <label className="block text-[10px] font-mono text-[var(--ember)] uppercase tracking-[0.2em]">
-                Profile Document
-              </label>
-              <TextareaAutosize
-                value={profileText}
-                onChange={(e) => setProfileText(e.target.value)}
-                minRows={10}
-                maxRows={15}
-                className="w-full bg-[var(--obsidian-2)] text-[var(--ink-100)] placeholder-[var(--ink-30)] border border-[var(--hairline)] rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--violet-mist)] transition-all resize-none text-sm leading-relaxed"
-                placeholder="Describe your goals, deals, and board members..."
-              />
+            {/* MEMBER STATS */}
+            <motion.div variants={itemVariants} className="space-y-2 mb-8">
+              <p className="text-white/25 text-[10px] tracking-[0.3em] font-mono uppercase">
+                Member Since · May 2024
+              </p>
+              <p className="text-white/25 text-[10px] tracking-[0.3em] font-mono uppercase">
+                ID · QLA-772-ALFA
+              </p>
+              <p className="text-white/25 text-[10px] tracking-[0.3em] font-mono uppercase">
+                Conversations · {conversations.length}
+              </p>
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="w-full h-px bg-white/10 my-8" />
+
+            {/* PROFILE DOCUMENT SECTION */}
+            <motion.div variants={itemVariants} className="flex flex-col relative pb-32">
+              <p className="text-white/30 text-[10px] tracking-[0.35em] font-mono uppercase mb-6">
+                PROFILE DOCUMENT
+              </p>
               
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono text-[var(--ink-30)]">
-                  {profileText.length.toLocaleString()} CHARACTERS
-                </span>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className={`px-6 py-2 rounded-lg font-mono text-[10px] uppercase tracking-widest transition-all ${
-                    saveStatus === "success"
-                      ? "bg-green-500/20 text-green-400 border border-green-500/50"
-                      : isSaving
-                      ? "bg-[var(--obsidian-3)] text-[var(--ink-30)]"
-                      : "bg-[var(--grad-ember-button)] text-white hover:brightness-110"
-                  }`}
-                >
-                  {isSaving ? "SYNCING..." : saveStatus === "success" ? "SYNCED" : "SYNC TO VAULT"}
-                </button>
+              <div className="relative group">
+                <TextareaAutosize
+                  value={profileText}
+                  onChange={(e) => handleSave(e.target.value)}
+                  className="w-full bg-transparent border-none p-0 text-white/50 text-sm leading-[1.8] font-light focus:ring-0 focus:outline-none resize-none placeholder:text-white/10"
+                  placeholder="The philosophy of high performance..."
+                />
+                
+                {/* FIX 1: Scroll Fade Height (h-16) */}
+                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#08090f] to-transparent pointer-events-none z-10" />
               </div>
-            </div>
-          </div>
-
-          {/* Right Column: QLA Journey (60%) */}
-          <div className="w-full lg:w-[60%] relative flex items-center justify-center min-h-[500px] lg:min-h-0 overflow-visible">
-             <QLAJourney />
-          </div>
-
+            </motion.div>
+          </motion.div>
         </div>
-      </main>
+
+        {/* RIGHT PANEL — FIXED, NO SCROLL */}
+        <motion.div 
+          className="relative w-[50%] h-full overflow-hidden flex-shrink-0 bg-[#08090f]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 2, ease: "easeOut", delay: 0.6 }}
+        >
+          {/* Glow - no pointer events */}
+          <div className="absolute inset-0 pointer-events-none z-0">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-indigo-950/40 blur-[100px]" />
+          </div>
+
+          {/* Spline — z-index 1, receives ALL pointer events */}
+          <div className="absolute inset-0 z-[1]">
+            <SplineScene
+              scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+              className="w-full h-full"
+              style={{ pointerEvents: 'auto' }}
+            />
+          </div>
+
+          {/* ALL overlays — z-index 10+, NO pointer events */}
+          <div className="absolute inset-y-0 left-0 w-48 z-10 bg-gradient-to-r from-[#08090f] to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 top-0 h-32 z-10 bg-gradient-to-b from-[#08090f] to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-32 z-10 bg-gradient-to-t from-[#08090f] to-transparent pointer-events-none" />
+          
+          <Spotlight className="-top-40 left-0 md:-top-20 z-20 pointer-events-none" fill="white" />
+          
+          {/* Brand text — pointer-events-none */}
+          <p className="absolute bottom-6 left-8 z-20 text-white/20 text-[10px] tracking-[0.35em] font-mono uppercase pointer-events-none">
+            Dan Peña · QLA Methodology
+          </p>
+
+          {/* Begin Session label — pointer-events-none */}
+          <p className="absolute bottom-6 right-8 z-20 text-white/20 text-[10px] tracking-[0.4em] font-mono uppercase pointer-events-none">
+            Begin Session →
+          </p>
+        </motion.div>
+
+      </div>
     </div>
   );
 }

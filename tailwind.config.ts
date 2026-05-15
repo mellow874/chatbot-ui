@@ -1,112 +1,78 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  darkMode: ['class'],
-  content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}'
-  ],
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  darkMode: 'class',
+  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
-    container: {
-      center: true,
-      padding: '2rem',
-      screens: {
-        '2xl': '1400px'
-      }
-    },
     extend: {
-      colors: {
-        /* Obsidian palette */
-        obsidian: {
-          0: 'var(--obsidian-0)',
-          1: 'var(--obsidian-1)',
-          2: 'var(--obsidian-2)',
-          3: 'var(--obsidian-3)',
-          4: 'var(--obsidian-4)',
-        },
-        /* Violet */
-        violet: {
-          glow: 'var(--violet-glow)',
-          deep: 'var(--violet-deep)',
-          mist: 'var(--violet-mist)',
-        },
-        /* Ember */
-        ember: {
-          DEFAULT: 'var(--ember)',
-          soft: 'var(--ember-soft)',
-        },
-        /* Ink (text) */
-        ink: {
-          100: 'var(--ink-100)',
-          70: 'var(--ink-70)',
-          50: 'var(--ink-50)',
-          30: 'var(--ink-30)',
-        },
-        /* Legacy shadcn HSL refs */
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
-        },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))'
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))'
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))'
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))'
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))'
-        },
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))'
-        }
-      },
       fontFamily: {
-        display: ['Cormorant Garamond', 'serif'],
-        body: ['DM Sans', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        display: ['Cormorant', 'Georgia', 'serif'],
+        mono:    ['Geist Mono', 'JetBrains Mono', 'monospace'],
+        // NO body font — system-ui intentionally
       },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
-      },
-      transitionTimingFunction: {
-        'out-expo': 'var(--ease-out-expo)',
-        'spring': 'var(--ease-spring)',
-      },
-      keyframes: {
-        'accordion-down': {
-          from: { height: 0 },
-          to: { height: 'var(--radix-accordion-content-height)' }
+      colors: {
+        void: {
+          DEFAULT: '#030305',
+          1: '#0a0a12',
+          2: '#0f0f1a',
+          3: '#141420',
+          4: '#1c1c2a',
+          5: '#24242e',
         },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: 0 }
-        }
+        bone: {
+          DEFAULT: '#e8e6df',
+          dim:     '#a09e98',
+          muted:   '#5a5855',
+          ghost:   '#2e2c2a',
+        },
+        violet: {
+          DEFAULT: '#5c4eff',
+          dim:     'rgba(92,78,255,0.10)',
+          glow:    'rgba(92,78,255,0.05)',
+          border:  'rgba(92,78,255,0.20)',
+          active:  'rgba(92,78,255,0.40)',
+          text:    '#8b7fff',
+          bright:  '#a096ff',
+        },
+        signal: '#39ff14',
+        danger: '#ff3b3b',
       },
       animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out'
-      }
-    }
+        'enter-up':     'enterUp 280ms cubic-bezier(0.15,0,0,1) both',
+        'enter-fade':   'enterFade 400ms ease both',
+        'cursor-blink': 'cursorBlink 900ms step-end infinite',
+        'live-ring':    'liveRing 2.4s ease-out infinite',
+        'shake':        'shake 450ms ease',
+      },
+      keyframes: {
+        enterUp: {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to:   { opacity: '1', transform: 'translateY(0)' },
+        },
+        enterFade: {
+          from: { opacity: '0' },
+          to:   { opacity: '1' },
+        },
+        cursorBlink: { '50%': { opacity: '0' } },
+        liveRing: {
+          '0%':   { boxShadow: '0 0 0 0 rgba(57,255,20,0.4)' },
+          '100%': { boxShadow: '0 0 0 6px rgba(57,255,20,0)' },
+        },
+        shake: {
+          '0%,100%':      { transform: 'translateX(0)' },
+          '15%,45%,75%':  { transform: 'translateX(-4px)' },
+          '30%,60%,90%':  { transform: 'translateX(4px)' },
+        },
+      },
+      maxWidth: {
+        content: '680px',
+      },
+    },
   },
-  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')]
+  plugins: [
+    require('tailwindcss-animate'),
+    require('@tailwindcss/typography'),
+  ],
 }
+
+export default config

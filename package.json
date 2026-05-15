@@ -37,6 +37,8 @@
     "@radix-ui/react-toggle-group": "^1.0.4",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@react-three/fiber": "^8.18.0",
+    "@splinetool/react-spline": "^4.1.0",
+    "@splinetool/runtime": "^1.12.94",
     "@tabler/icons-react": "^2.40.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",

@@ -3,7 +3,8 @@ import { ReactNode } from "react";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import AuthGuard from "@/components/auth/AuthGuard";
-import DottedSurface from "@/components/effects/DottedSurface";
+import { SidebarProvider } from "@/context/SidebarContext";
+
 
 export const metadata: Metadata = {
   title: "QLA Mentor | Melsoft Holdings",
@@ -13,10 +14,17 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="bg-[var(--obsidian-1)] text-[var(--ink-100)] h-screen flex flex-col overflow-hidden antialiased">
-        <DottedSurface />
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;1,300;1,400&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+      </head>
+      <body className="h-screen flex flex-col overflow-hidden antialiased">
+
         <div className="relative z-10 flex h-full w-full">
-          <AuthGuard>{children}</AuthGuard>
+          <SidebarProvider>
+            <AuthGuard>{children}</AuthGuard>
+          </SidebarProvider>
         </div>
         <Toaster />
       </body>

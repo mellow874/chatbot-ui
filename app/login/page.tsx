@@ -1,220 +1,240 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authenticate } from "@/lib/auth";
+import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
-import SplashCursor from "@/components/effects/SplashCursor";
+import VoidShader from "@/components/ui/VoidShader";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError]       = useState("");
   const [isShaking, setIsShaking] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [shakeCount, setShakeCount] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showWelcome, setShowWelcome]   = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const authenticated = localStorage.getItem("qla_authenticated");
-    if (authenticated === "true") {
-      router.push("/");
-    }
+    if (localStorage.getItem("qla_authenticated") === "true") router.push("/");
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!password.trim()) {
-      setError("Enter access code");
-      return;
-    }
-
+    if (!password.trim()) { setError("Enter your access code."); return; }
     if (password !== process.env.NEXT_PUBLIC_APP_PASSWORD) {
-      setError("Access denied");
+      setError("Access denied. Invalid code.");
       setIsShaking(true);
+      setShakeCount(c => c + 1);
       setTimeout(() => setIsShaking(false), 500);
       return;
     }
-
     authenticate(password);
     setError("");
     setShowWelcome(true);
   };
 
-  const hasValue = password.length > 0;
+  if (showWelcome) return <WelcomeOverlay />;
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden" style={{ background: "var(--obsidian-0)" }}>
-      {/* Splash cursor — WebGL fluid sim */}
-      <SplashCursor />
+    <div
+      className="relative w-screen h-screen flex overflow-hidden"
+      style={{ background: "var(--void)" }}
+    >
+      {/* Shader background — full bleed */}
+      <VoidShader className="absolute inset-0 z-0 opacity-100" />
 
-      {/* Subtle ambient gradient */}
+      {/* ── LEFT PANEL — 38.2% — the statement ── */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="hidden lg:flex z-10 flex-col justify-between p-12"
         style={{
-          background: "radial-gradient(ellipse at 50% 80%, rgba(124, 58, 237, 0.12) 0%, transparent 60%)",
+          width: "38.2%",
+          maxWidth: "560px",
+          borderRight: "1px solid var(--border-ghost)",
+          background: "rgba(3,3,5,0.45)",
+          backdropFilter: "blur(24px)",
         }}
-      />
+      >
+        <div>
+          <p className="type-label" style={{ color: "var(--text-ghost)" }}>MELSOFT HOLDINGS</p>
+        </div>
 
-      {!showWelcome ? (
-        <div className="flex items-center justify-center h-full relative z-10">
-          {/* Login Card */}
-          <div
-            className={`w-full transition-all duration-300 ${isShaking ? "animate-shake" : ""}`}
+        {/* The statement */}
+        <div>
+          <p
+            className="type-display-italic"
             style={{
-              maxWidth: "400px",
-              background: "rgba(12, 10, 20, 0.6)",
-              backdropFilter: "blur(24px) saturate(1.5)",
-              WebkitBackdropFilter: "blur(24px) saturate(1.5)",
-              border: "1px solid var(--hairline-bright)",
-              borderRadius: "20px",
-              padding: "40px 32px",
+              fontFamily: "var(--font-display, 'Cormorant', Georgia, serif)",
+              fontStyle: "italic",
+              fontSize: "clamp(3rem, 4.5vw, 5.5rem)",
+              fontWeight: 300,
+              color: "var(--bone)",
+              lineHeight: 1.05,
+              letterSpacing: "-0.02em",
             }}
           >
-            {/* Monogram */}
-            <div className="flex justify-center mb-6">
-              <div
-                className="flex items-center justify-center"
-                style={{
-                  width: "64px",
-                  height: "64px",
-                  borderRadius: "16px",
-                  background: "var(--obsidian-3)",
-                }}
-              >
-                <img 
-                  src="/brand/logo.png" 
-                  alt="QLA" 
-                  className="w-12 h-12 object-contain opacity-90" 
-                  style={{ mixBlendMode: 'screen' }}
-                />
-              </div>
-            </div>
-
-            {/* Title */}
-            <h1
-              className="text-center font-display italic font-semibold mb-6"
-              style={{
-                fontSize: "22px",
-                color: "var(--ink-100)",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              The Trillion Dollar Mentor
-            </h1>
-
-            {/* Divider with ember dot */}
-            <div className="relative mb-8">
-              <div
-                className="h-px w-full"
-                style={{
-                  background: "linear-gradient(to right, transparent, var(--hairline-bright), transparent)",
-                }}
-              />
-              <div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                style={{
-                  width: "6px",
-                  height: "6px",
-                  borderRadius: "50%",
-                  background: "var(--ember)",
-                  boxShadow: "0 0 8px var(--ember)",
-                }}
-              />
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleLogin} className="space-y-6">
-              {/* Floating label input */}
-              <div className="relative">
-                <input
-                  ref={inputRef}
-                  type="password"
-                  id="access-code"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setError("");
-                  }}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                  className="w-full peer text-sm font-medium pt-5 pb-2 px-4 rounded-xl transition-all duration-200"
-                  style={{
-                    background: "var(--obsidian-2)",
-                    border: `1px solid ${isFocused ? "rgba(124, 58, 237, 0.4)" : "var(--hairline)"}`,
-                    color: "var(--ink-100)",
-                    caretColor: "var(--violet-mist)",
-                    boxShadow: isFocused
-                      ? "0 0 0 3px rgba(124, 58, 237, 0.15), 0 4px 24px -8px rgba(124, 58, 237, 0.3)"
-                      : "none",
-                    outline: "none",
-                  }}
-                  autoFocus
-                />
-                <label
-                  htmlFor="access-code"
-                  className="absolute left-4 transition-all duration-200 pointer-events-none font-mono"
-                  style={{
-                    top: isFocused || hasValue ? "6px" : "50%",
-                    transform: isFocused || hasValue ? "none" : "translateY(-50%)",
-                    fontSize: isFocused || hasValue ? "9px" : "12px",
-                    color: isFocused ? "var(--violet-mist)" : "var(--ink-30)",
-                    letterSpacing: isFocused || hasValue ? "0.15em" : "0.05em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Access code
-                </label>
-              </div>
-
-              {/* Error */}
-              {error && (
-                <p
-                  className="text-center text-xs font-medium animate-slide-up"
-                  style={{ color: "#ef4444" }}
-                >
-                  {error}
-                </p>
-              )}
-
-              {/* Enter button with shimmer */}
-              <button
-                type="submit"
-                className="relative w-full py-3 px-4 rounded-xl font-semibold tracking-widest text-white uppercase text-sm transition-all duration-300 hover:brightness-110 hover:scale-[1.02] active:scale-95 overflow-hidden"
-                style={{
-                  background: "var(--grad-ember-button)",
-                  boxShadow: "0 4px 20px -6px var(--ember)",
-                }}
-              >
-                {/* Shimmer pseudo-element */}
-                <span
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)",
-                    animation: "buttonShimmer 4s ease-in-out infinite",
-                  }}
-                />
-                <span className="relative z-10">ENTER</span>
-              </button>
-            </form>
-
-            {/* Footer */}
-            <p
-              className="text-center mt-8 font-mono"
-              style={{
-                fontSize: "10px",
-                color: "var(--ink-30)",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Secure access protected · Session persists locally
-            </p>
-          </div>
+            Make it right.
+            <br />
+            <span style={{ color: "var(--text-secondary)" }}>
+              Make it inevitable.
+            </span>
+          </p>
+          <div
+            className="mt-6 rule-violet"
+            style={{ width: "80px" }}
+          />
+          <p
+            className="type-mono text-[11px] mt-4"
+            style={{ color: "var(--text-muted)", lineHeight: 1.6 }}
+          >
+            Dan Peña · Quantum Leap Advantage
+          </p>
         </div>
-      ) : (
-        <WelcomeOverlay />
-      )}
+
+        <div className="flex items-center gap-2">
+          <div
+            className="w-1.5 h-1.5 rounded-full animate-live-ring"
+            style={{ background: "var(--signal)" }}
+          />
+          <p className="type-label" style={{ fontSize: "8px" }}>PRIVATE TERMINAL</p>
+        </div>
+      </div>
+
+      {/* ── RIGHT PANEL — 61.8% — the gate ── */}
+      <div
+        className="flex-1 flex items-center justify-center z-10 px-8"
+        style={{ background: "rgba(3,3,5,0.6)", backdropFilter: "blur(8px)" }}
+      >
+        <div
+          key={`shake-${shakeCount}`}
+          className={`w-full max-w-sm ${isShaking ? "animate-shake" : ""}`}
+        >
+
+          {/* Mobile brand */}
+          <div className="mb-10 lg:hidden">
+            <p
+              className="type-display-italic text-3xl"
+              style={{
+                fontFamily: "var(--font-display, 'Cormorant', Georgia, serif)",
+                fontStyle: "italic",
+                fontWeight: 300,
+                color: "var(--bone)",
+              }}
+            >
+              QLA Mentor
+            </p>
+            <p className="type-label mt-1">MELSOFT HOLDINGS</p>
+          </div>
+
+          {/* Section label */}
+          <p className="type-label mb-6" style={{ color: "var(--text-ghost)" }}>
+            SECURE ACCESS
+          </p>
+
+          <h2
+            style={{
+              fontFamily: "var(--font-display, 'Cormorant', Georgia, serif)",
+              fontSize: "2.25rem",
+              fontWeight: 300,
+              color: "var(--bone)",
+              letterSpacing: "-0.01em",
+              lineHeight: 1.1,
+              marginBottom: "0.5rem",
+            }}
+          >
+            Welcome back.
+          </h2>
+          <p
+            className="text-sm mb-8"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Enter your private access code to continue.
+          </p>
+
+          <form onSubmit={handleLogin} className="space-y-3">
+            {/* Password */}
+            <div
+              className={`surface-input flex items-center gap-3 px-4 h-13 transition-all duration-180`}
+              style={{ 
+                borderRadius: "6px", 
+                height: "52px",
+                borderColor: isFocused ? "var(--border-hot)" : "var(--border-subtle)",
+                boxShadow: isFocused ? "0 0 0 3px var(--violet-dim), 0 0 24px var(--violet-glow)" : "none",
+              }}
+            >
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Access code"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                autoFocus
+                className="flex-1 bg-transparent outline-none text-sm"
+                style={{
+                  color: "var(--bone)",
+                  caretColor: "var(--violet)",
+                  fontFamily: "inherit",
+                  fontSize: "14px",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ color: "var(--text-muted)", flexShrink: 0 }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "var(--bone-dim)")}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)")}
+              >
+                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div
+                className="flex items-center gap-2 px-4 py-2.5 text-xs animate-enter-fade"
+                style={{
+                  background: "rgba(255,59,59,0.06)",
+                  border: "1px solid rgba(255,59,59,0.18)",
+                  borderRadius: "6px",
+                  color: "var(--danger)",
+                  fontFamily: "var(--font-mono, monospace)",
+                  letterSpacing: "0.02em",
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              className="w-full h-[52px] text-sm font-medium tracking-[0.08em] transition-all duration-150"
+              style={{
+                background: "var(--violet)",
+                color: "white",
+                borderRadius: "6px",
+                border: "none",
+                fontFamily: "var(--font-mono, monospace)",
+                letterSpacing: "0.12em",
+              }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "0.88")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.opacity = "1")}
+            >
+              ENTER
+            </button>
+          </form>
+
+          <p
+            className="type-label text-center mt-8"
+            style={{ color: "var(--text-ghost)", fontSize: "8px" }}
+          >
+            SESSION LOCAL · SSL SECURED
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -241,7 +261,7 @@ function WelcomeOverlay() {
   return (
     <div
       className="flex flex-col items-center justify-center h-full relative overflow-hidden z-10 w-full"
-      style={{ background: "var(--obsidian-0)" }}
+      style={{ background: "var(--void)" }}
     >
       {/* Ambient glow */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
@@ -259,13 +279,13 @@ function WelcomeOverlay() {
 
       {/* Logo Monogram */}
       <div
-        className="flex items-center justify-center mb-10 animate-slide-up"
+        className="flex items-center justify-center mb-10 animate-enter-fade"
         style={{
           width: "80px",
           height: "80px",
           borderRadius: "20px",
-          background: "var(--obsidian-3)",
-          border: "1px solid var(--hairline-bright)",
+          background: "var(--void-3)",
+          border: "1px solid var(--border-ghost)",
         }}
       >
         <img 
@@ -282,8 +302,8 @@ function WelcomeOverlay() {
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="font-display text-4xl md:text-5xl font-bold tracking-tight"
-            style={{ color: "var(--ink-100)", fontFamily: "'Cormorant Garamond', serif" }}
+            className="font-display-italic text-4xl md:text-5xl tracking-tight"
+            style={{ color: "var(--bone)", fontFamily: "var(--font-display, 'Cormorant', Georgia, serif)" }}
           >
             Don&apos;t negotiate with mediocrity.
           </motion.h1>
@@ -294,7 +314,7 @@ function WelcomeOverlay() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-lg md:text-xl font-light italic"
-            style={{ color: "var(--ink-70)", fontFamily: "'Cormorant Garamond', serif" }}
+            style={{ color: "var(--text-secondary)", fontFamily: "var(--font-display, 'Cormorant', Georgia, serif)" }}
           >
             Your goals are too small. Let&apos;s build an empire.
           </motion.p>
@@ -306,8 +326,8 @@ function WelcomeOverlay() {
             animate={{ opacity: 1 }}
             className="pt-4 flex items-center justify-center gap-3"
           >
-            <div className="w-2 h-2 rounded-full bg-[var(--ember)] animate-pulse shadow-[0_0_8px_var(--ember)]" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-[var(--ink-30)]">
+            <div className="w-2 h-2 rounded-full animate-live-ring" style={{ background: "var(--signal)" }} />
+            <span className="type-label uppercase tracking-[0.3em] text-[var(--text-muted)]">
               Entering the Vault
             </span>
           </motion.div>
@@ -317,7 +337,7 @@ function WelcomeOverlay() {
       {/* Progress Bar (Cinematic) */}
       <div
         className="absolute bottom-0 left-0 right-0 h-0.5"
-        style={{ background: "rgba(255,255,255,0.05)" }}
+        style={{ background: "var(--border-ghost)" }}
       >
         <motion.div
           initial={{ width: 0 }}
@@ -325,16 +345,12 @@ function WelcomeOverlay() {
           transition={{ duration: 5.5, ease: "linear" }}
           style={{
             height: "100%",
-            background: "linear-gradient(90deg, var(--violet-mist), var(--ember), var(--violet-mist))",
+            background: "linear-gradient(90deg, var(--violet-dim), var(--violet), var(--violet-dim))",
           }}
         />
       </div>
 
       <style jsx>{`
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
         @keyframes pulse-glow {
           0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) scale(1); }
           50% { opacity: 0.25; transform: translate(-50%, -50%) scale(1.1); }

@@ -1,155 +1,151 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { staggerContainer, fadeUp } from "@/lib/motion";
 
 interface EmptyStateProps {
-  onSuggestionClick: (suggestion: string) => void;
+  onSuggestionClick: (s: string) => void;
 }
 
 const SUGGESTIONS = [
   {
-    label: "01 / DEAL STRUCTURING",
-    question: "How do I structure my first acquisition?",
+    n: "01",
+    q: "How do I structure my first acquisition with zero personal capital?",
+    tag: "DEAL MECHANICS",
   },
   {
-    label: "02 / CAPITAL",
-    question: "What is OPM and how do I use it?",
+    n: "02",
+    q: "What does OPM actually mean, and how do I deploy it?",
+    tag: "CAPITAL STRATEGY",
   },
   {
-    label: "03 / TEAM",
-    question: "Build me a Dream Team from scratch.",
+    n: "03",
+    q: "How do I find and evaluate undervalued companies?",
+    tag: "DEAL FLOW",
+  },
+  {
+    n: "04",
+    q: "What should a Dream Team look like in year one?",
+    tag: "PEOPLE & CULTURE",
   },
 ];
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: 0.3 + i * 0.08,
-      duration: 0.32,
-      ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-    },
-  }),
-};
-
-const headingVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-    },
-  },
-};
-
 export default function EmptyState({ onSuggestionClick }: EmptyStateProps) {
+  const [hovered, setHovered] = useState<string | null>(null);
+
   return (
-    <div className="flex flex-col items-center justify-center h-full flex-1 px-4">
-      {/* Vertical ember line — ritual mark */}
+    <div className="flex flex-col items-start justify-center h-full flex-1 px-6 py-12 max-w-2xl mx-auto w-full">
+
+      {/* Opening line */}
       <motion.div
-        initial={{ scaleY: 0, opacity: 0 }}
-        animate={{ scaleY: 1, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.15,0,0,1] }}
+        className="mb-1"
+      >
+        <p className="type-label">DAN PEÑA · QLA METHODOLOGY</p>
+      </motion.div>
+
+      {/* Headline */}
+      <motion.h1
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: [0.15,0,0,1], delay: 0.06 }}
+        className="type-display-italic"
         style={{
-          width: "2px",
-          height: "40px",
-          background: "var(--ember)",
-          boxShadow: "0 0 12px var(--ember)",
-          marginBottom: "24px",
-          transformOrigin: "top",
+          fontFamily: "var(--font-display, 'Cormorant', Georgia, serif)",
+          fontStyle: "italic",
+          fontSize: "clamp(2.6rem, 5vw, 4rem)",
+          fontWeight: 300,
+          color: "var(--bone)",
+          lineHeight: 1.08,
+          letterSpacing: "-0.01em",
+          marginBottom: "0",
+        }}
+      >
+        Ask Dan
+        <br />
+        <span style={{ color: "var(--text-secondary)" }}>anything.</span>
+      </motion.h1>
+
+      {/* Divider */}
+      <motion.div
+        initial={{ scaleX: 0, opacity: 0 }}
+        animate={{ scaleX: 1, opacity: 1 }}
+        transition={{ duration: 0.7, ease: [0.15,0,0,1], delay: 0.22 }}
+        style={{
+          transformOrigin: "left",
+          height: "1px",
+          width: "100%",
+          background: "var(--border-subtle)",
+          margin: "2.5rem 0",
         }}
       />
 
-      {/* Heading */}
-      <motion.h1
-        className="font-display text-center font-semibold mb-3"
-        style={{
-          fontSize: "clamp(36px, 5vw, 52px)",
-          letterSpacing: "-0.02em",
-          color: "var(--ink-100)",
-          lineHeight: 1.1,
-        }}
-        variants={headingVariants}
+      {/* Briefing entries */}
+      <motion.div
+        variants={staggerContainer}
         initial="hidden"
-        animate="visible"
+        animate="show"
+        className="w-full space-y-0"
       >
-        What&apos;s the deal?
-      </motion.h1>
-
-      {/* Subtitle */}
-      <motion.p
-        className="text-center mb-12 text-sm"
-        style={{ color: "var(--ink-50)", maxWidth: "420px" }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.15, duration: 0.4 }}
-      >
-        Ask Dan anything. Deal flow, OPM, Dream Team, QLA fundamentals.
-      </motion.p>
-
-      {/* Suggestion cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-2xl w-full">
-        {SUGGESTIONS.map((suggestion, idx) => (
+        {SUGGESTIONS.map(({ n, q, tag }) => (
           <motion.button
-            key={idx}
-            custom={idx}
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            onClick={() => onSuggestionClick(suggestion.question)}
-            className="group relative text-left rounded-xl transition-all duration-200 overflow-hidden"
+            key={n}
+            variants={fadeUp}
+            onClick={() => onSuggestionClick(q)}
+            onMouseEnter={() => setHovered(n)}
+            onMouseLeave={() => setHovered(null)}
+            className="w-full flex items-baseline gap-5 py-4 text-left group"
             style={{
-              background: "var(--obsidian-2)",
-              border: "1px solid var(--hairline)",
-              padding: "16px 20px",
-            }}
-            whileHover={{
-              y: -2,
-              transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "var(--hairline-bright)";
-              e.currentTarget.style.boxShadow =
-                "0 8px 32px -12px rgba(124, 58, 237, 0.4)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "var(--hairline)";
-              e.currentTarget.style.boxShadow = "none";
+              borderBottom: "1px solid var(--border-ghost)",
+              transition: "border-color 160ms ease",
+              borderBottomColor: hovered === n ? "var(--border-violet)" : "var(--border-ghost)",
             }}
           >
-            {/* Mono label */}
-            <div
-              className="font-mono text-[8px] uppercase mb-2"
+            {/* Number */}
+            <span
+              className="type-mono flex-shrink-0"
               style={{
-                letterSpacing: "0.15em",
-                color: "var(--ink-30)",
+                fontSize: "13px",
+                color: hovered === n ? "var(--violet-text)" : "var(--text-ghost)",
+                transition: "color 160ms ease",
+                minWidth: "24px",
+                userSelect: "none",
               }}
             >
-              {suggestion.label}
+              {n}
+            </span>
+
+            {/* Question */}
+            <div className="flex-1 min-w-0">
+              <p
+                className="text-[14px] leading-snug"
+                style={{
+                  color: hovered === n ? "var(--bone)" : "var(--text-secondary)",
+                  fontWeight: 400,
+                  transition: "color 160ms ease",
+                }}
+              >
+                {q}
+              </p>
             </div>
 
-            {/* Question + arrow */}
-            <div className="flex items-center justify-between gap-2">
-              <span
-                className="text-sm leading-snug"
-                style={{ color: "var(--ink-100)" }}
-              >
-                {suggestion.question}
-              </span>
-              <span
-                className="opacity-0 group-hover:opacity-100 transition-all duration-200 flex-shrink-0 translate-x-2 group-hover:translate-x-0"
-                style={{ color: "var(--ink-50)" }}
-              >
-                →
-              </span>
-            </div>
+            {/* Tag */}
+            <span
+              className="type-label flex-shrink-0"
+              style={{
+                color: hovered === n ? "var(--violet-text)" : "var(--text-ghost)",
+                transition: "color 160ms ease",
+                fontSize: "8px",
+              }}
+            >
+              {tag}
+            </span>
           </motion.button>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

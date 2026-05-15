@@ -109,43 +109,6 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Mobile hamburger button */}
-      {isMobile && (
-        <button
-          onClick={onToggle}
-          className="fixed top-4 left-4 z-50 p-2 rounded-lg transition-colors duration-150 md:hidden"
-          style={{ color: "var(--violet-mist)" }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(124, 58, 237, 0.1)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-          }}
-          aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
-        >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      )}
-
-      {/* Backdrop (mobile) */}
-      <AnimatePresence>
-        {isMobile && isOpen && (
-          <motion.div
-            className="fixed inset-0 z-30 md:hidden"
-            style={{
-              background: "rgba(7, 6, 10, 0.7)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-            }}
-            onClick={onToggle}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          />
-        )}
-      </AnimatePresence>
-
       {/* Sidebar */}
       <aside
         className="flex flex-col h-screen z-40 flex-shrink-0 overflow-hidden"
@@ -157,6 +120,9 @@ export default function Sidebar({
           transition: isMobile ? "transform 320ms var(--ease-out-expo)" : "width 280ms var(--ease-out-expo)",
           transform: isMobile ? (isOpen ? "translateX(0)" : "translateX(-100%)") : "none",
           position: isMobile ? "fixed" : "relative",
+          top: 0,
+          left: 0,
+          bottom: 0,
         }}
       >
         {/* ── Logo block ─────────────────────────────────── */}

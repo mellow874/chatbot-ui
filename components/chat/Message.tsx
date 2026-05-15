@@ -64,7 +64,7 @@ export default function MessageComponent({ message, isStreaming }: MessageProps)
         <div
           className="px-4 py-3"
           style={{
-            maxWidth: "min(70%, 480px)",
+            maxWidth: "min(85%, 480px)",
             background: "rgba(255, 122, 26, 0.06)",
             border: "1px solid rgba(255, 122, 26, 0.15)",
             borderRadius: "16px 16px 4px 16px",
@@ -272,7 +272,7 @@ export default function MessageComponent({ message, isStreaming }: MessageProps)
                     }}
                   >
                     <span>{icon}</span>
-                    <span>{source.title}</span>
+                    <span className="truncate max-w-[140px] md:max-w-[240px]">{source.title}</span>
                   </span>
                 );
               })}

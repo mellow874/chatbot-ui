@@ -12,7 +12,15 @@ interface PromptInputProps {
 
 export default function PromptInput({ onSendMessage, isLoading }: PromptInputProps) {
   const [input, setInput] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   const { toast } = useToast();
 
   // Cmd/Ctrl + / focuses the input from anywhere
@@ -50,7 +58,7 @@ export default function PromptInput({ onSendMessage, isLoading }: PromptInputPro
   const hasInput = input.trim().length > 0;
 
   return (
-    <div className="w-full flex flex-col items-center px-4 pb-4 pt-2">
+    <div className={`w-full flex flex-col items-center px-4 ${isMobile ? 'pb-2' : 'pb-4'} pt-2`}>
       {/* Floating pill container */}
       <div
         className="w-full max-w-[768px] rounded-2xl transition-all duration-200"
@@ -181,20 +189,22 @@ export default function PromptInput({ onSendMessage, isLoading }: PromptInputPro
       </div>
 
       {/* Command hint row */}
-      <div
-        className="mt-2.5 text-center font-mono"
-        style={{
-          fontSize: "11px",
-          color: "var(--ink-30)",
-          letterSpacing: "0.02em",
-        }}
-      >
-        <span>Enter to send</span>
-        <span className="mx-2 opacity-40">·</span>
-        <span>Shift+Enter for new line</span>
-        <span className="mx-2 opacity-40">·</span>
-        <span>⌘K for commands</span>
-      </div>
+      {!isMobile && (
+        <div
+          className="mt-2.5 text-center font-mono"
+          style={{
+            fontSize: "11px",
+            color: "var(--ink-30)",
+            letterSpacing: "0.02em",
+          }}
+        >
+          <span>Enter to send</span>
+          <span className="mx-2 opacity-40">·</span>
+          <span>Shift+Enter for new line</span>
+          <span className="mx-2 opacity-40">·</span>
+          <span>⌘K for commands</span>
+        </div>
+      )}
     </div>
   );
 }

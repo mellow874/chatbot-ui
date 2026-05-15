@@ -42,6 +42,12 @@ export default function ChatPage() {
         isLoading={isStreaming}
         onSendMessage={sendMessage}
         onSuggestionClick={handleSuggestionClick}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        onNewChat={() => {
+          newConversation();
+          setSidebarOpen(false);
+        }}
       />
     </div>
   );

@@ -17,6 +17,33 @@ module.exports = {
     },
     extend: {
       colors: {
+        /* Obsidian palette */
+        obsidian: {
+          0: 'var(--obsidian-0)',
+          1: 'var(--obsidian-1)',
+          2: 'var(--obsidian-2)',
+          3: 'var(--obsidian-3)',
+          4: 'var(--obsidian-4)',
+        },
+        /* Violet */
+        violet: {
+          glow: 'var(--violet-glow)',
+          deep: 'var(--violet-deep)',
+          mist: 'var(--violet-mist)',
+        },
+        /* Ember */
+        ember: {
+          DEFAULT: 'var(--ember)',
+          soft: 'var(--ember-soft)',
+        },
+        /* Ink (text) */
+        ink: {
+          100: 'var(--ink-100)',
+          70: 'var(--ink-70)',
+          50: 'var(--ink-50)',
+          30: 'var(--ink-30)',
+        },
+        /* Legacy shadcn HSL refs */
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -51,10 +78,19 @@ module.exports = {
           foreground: 'hsl(var(--card-foreground))'
         }
       },
+      fontFamily: {
+        display: ['Cormorant Garamond', 'serif'],
+        body: ['DM Sans', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)'
+      },
+      transitionTimingFunction: {
+        'out-expo': 'var(--ease-out-expo)',
+        'spring': 'var(--ease-spring)',
       },
       keyframes: {
         'accordion-down': {

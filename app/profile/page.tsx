@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, MessageSquare } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
 import Sidebar from "@/components/chat/Sidebar";
+import QLAJourney from "@/components/profile/QLAJourney";
 import { Conversation, getConversations, getActiveConversationId } from "@/lib/conversations";
 import { getProfile, updateProfile } from "@/lib/api";
 
@@ -18,35 +19,28 @@ export default function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Load conversations
     setConversations(getConversations());
     setActiveId(getActiveConversationId());
   }, []);
 
   useEffect(() => {
-    // Load profile from backend
     const loadProfile = async () => {
       try {
         const text = await getProfile();
-        if (text) {
-          setProfileText(text);
-        }
+        if (text) setProfileText(text);
       } catch (err) {
         console.error("Failed to load profile", err);
       }
     };
-
     loadProfile();
   }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
     setSaveStatus("idle");
-
     try {
       const success = await updateProfile(profileText);
       if (!success) throw new Error("Failed to save");
-
       setSaveStatus("success");
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (err) {
@@ -59,8 +53,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-background">
-      {/* Sidebar */}
+    <div className="flex h-screen w-screen bg-transparent overflow-hidden">
       <Sidebar
         conversations={conversations}
         activeId={activeId}
@@ -70,123 +63,99 @@ export default function ProfilePage() {
         onToggle={() => setSidebarOpen(!sidebarOpen)}
       />
 
-      {/* Main content */}
-      <div className="flex-1 overflow-y-auto bg-gradient-to-b from-[#080810] via-[#0f0f1a] to-[#0a1733]">
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-8">
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <button
-              onClick={() => router.push("/")}
-              className="p-2 hover:bg-white/5 rounded-lg transition-colors text-text-muted hover:text-orange-500"
-            >
-              <ArrowLeft size={24} />
-            </button>
-            <div>
-              <h1 className="font-display text-4xl font-bold text-white">Your Profile</h1>
-              <p className="text-text-muted text-sm mt-1">
-                This is what Dan knows about you. Keep it current.
-              </p>
-            </div>
-          </div>
-
-          {/* Profile Card */}
-          <div
-            className="rounded-lg p-8 border border-border mb-8"
-            style={{
-              background: "linear-gradient(135deg, #0a1733 0%, #1a0a2e 100%)",
-            }}
-          >
-            {/* User Info Header */}
-            <div className="flex items-start gap-4 mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-maroon to-purple-600 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-                <span className="text-2xl font-bold text-white font-display">L</span>
-              </div>
-              <div>
-                <h2 className="font-display text-2xl font-bold text-white">Larreth Jimu</h2>
-                <p className="text-text-muted text-sm">CEO, Melsoft Holdings</p>
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-orange-500/20 via-transparent to-orange-500/20 mb-8" />
-
-            {/* Profile Document Label */}
-            <label className="block text-xs font-semibold text-orange-500 uppercase tracking-widest mb-4">
-              Profile Document
-            </label>
-
-            {/* Textarea */}
-            <TextareaAutosize
-              value={profileText}
-              onChange={(e) => setProfileText(e.target.value)}
-              minRows={12}
-              maxRows={20}
-              placeholder="Describe your business, your deals, your board, your goals...
-Dan will read this before every conversation."
-              className="w-full bg-[#1a1a2e] text-text-primary placeholder-text-dim border border-border-soft rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all duration-200 resize-none font-medium leading-relaxed"
-            />
-
-            {/* Character count */}
-            <div className="text-right text-xs text-text-muted mt-3">
-              {profileText.length.toLocaleString()} characters
-            </div>
-
-            {/* Save Button */}
-            <div className="flex items-center gap-4 mt-8">
+      {/* Main scroll area - overflow visible to allow labels to float out */}
+      <main className="flex-1 overflow-y-auto relative custom-scrollbar overflow-x-visible">
+        <div className="flex flex-col lg:flex-row min-h-full overflow-visible">
+          
+          {/* Left Column: User identity panel (40%) */}
+          <div className="w-full lg:w-[40%] px-4 md:px-8 py-8 lg:border-r border-[var(--hairline)] overflow-visible">
+            <div className="flex items-center gap-4 mb-12">
               <button
-                onClick={handleSave}
-                disabled={isSaving || profileText.trim().length === 0}
-                className={`ml-auto px-6 py-3 rounded-lg font-semibold uppercase tracking-wider text-sm transition-all duration-200 ${
-                  saveStatus === "success"
-                    ? "bg-green-600/20 text-green-400 border border-green-500/50"
-                    : saveStatus === "error"
-                      ? "bg-red-600/20 text-red-400 border border-red-500/50"
-                      : isSaving || profileText.trim().length === 0
-                        ? "bg-text-dim text-text-muted cursor-not-allowed"
-                        : "bg-gradient-to-br from-orange-500 to-orange-600 text-white hover:brightness-110 active:scale-95"
-                }`}
+                onClick={() => router.push("/")}
+                className="p-2 hover:bg-[var(--obsidian-3)] rounded-lg transition-colors text-[var(--ink-50)] hover:text-[var(--ember)]"
               >
-                {isSaving ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    Saving...
-                  </div>
-                ) : saveStatus === "success" ? (
-                  <div className="flex items-center gap-2">
-                    <Check size={16} />
-                    Saved ✓
-                  </div>
-                ) : saveStatus === "error" ? (
-                  "Failed — try again"
-                ) : (
-                  "SAVE PROFILE"
-                )}
+                <ArrowLeft size={24} />
               </button>
+              <div>
+                <h1 className="font-display text-3xl font-bold text-[var(--ink-100)]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                  The Vault
+                </h1>
+                <p className="text-[var(--ink-50)] text-xs font-mono uppercase tracking-widest mt-1">
+                  Private Profile · Dan Peña QLA
+                </p>
+              </div>
             </div>
 
-            {/* Info callout */}
-            <div className="mt-8 p-4 rounded-lg border border-orange-500/20 bg-orange-500/5">
-              <p className="text-sm text-text-muted leading-relaxed">
-                <span className="text-orange-500 mr-2">ⓘ</span>
-                Dan reads this profile at the start of every conversation. Update it whenever your situation
-                changes — new deals, new board members, new capital raised. The more specific you are, the better
-                his answers.
-              </p>
+            {/* Identity Card */}
+            <div className="mb-10">
+              <div className="flex items-center gap-6 mb-8">
+                <div 
+                  className="w-24 h-24 rounded-3xl bg-[var(--obsidian-3)] border border-[var(--hairline-bright)] flex items-center justify-center shadow-2xl"
+                >
+                  <span className="text-4xl font-display font-bold text-[var(--ink-100)]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                    L
+                  </span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-display font-bold text-[var(--ink-100)]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+                    Larreth Jimu
+                  </h2>
+                  <p className="text-[var(--ink-50)] text-sm mb-2">CEO, Melsoft Holdings</p>
+                  <div className="flex items-center gap-2 text-[var(--ember)] font-mono text-[10px] uppercase tracking-wider">
+                    <MessageSquare size={12} />
+                    <span>Conversations: {conversations.length}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1 text-xs font-mono text-[var(--ink-30)]">
+                <p>MEMBER SINCE: MAY 2024</p>
+                <p>ID: QLA-772-ALFA</p>
+              </div>
             </div>
 
-            {/* Last updated */}
-            <p className="text-xs text-text-dim mt-6">
-              Last updated: {new Date().toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
+            {/* Profile Document */}
+            <div className="space-y-4">
+              <label className="block text-[10px] font-mono text-[var(--ember)] uppercase tracking-[0.2em]">
+                Profile Document
+              </label>
+              <TextareaAutosize
+                value={profileText}
+                onChange={(e) => setProfileText(e.target.value)}
+                minRows={10}
+                maxRows={15}
+                className="w-full bg-[var(--obsidian-2)] text-[var(--ink-100)] placeholder-[var(--ink-30)] border border-[var(--hairline)] rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--violet-mist)] transition-all resize-none text-sm leading-relaxed"
+                placeholder="Describe your goals, deals, and board members..."
+              />
+              
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono text-[var(--ink-30)]">
+                  {profileText.length.toLocaleString()} CHARACTERS
+                </span>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className={`px-6 py-2 rounded-lg font-mono text-[10px] uppercase tracking-widest transition-all ${
+                    saveStatus === "success"
+                      ? "bg-green-500/20 text-green-400 border border-green-500/50"
+                      : isSaving
+                      ? "bg-[var(--obsidian-3)] text-[var(--ink-30)]"
+                      : "bg-[var(--grad-ember-button)] text-white hover:brightness-110"
+                  }`}
+                >
+                  {isSaving ? "SYNCING..." : saveStatus === "success" ? "SYNCED" : "SYNC TO VAULT"}
+                </button>
+              </div>
+            </div>
           </div>
+
+          {/* Right Column: QLA Journey (60%) */}
+          <div className="w-full lg:w-[60%] relative flex items-center justify-center min-h-[500px] lg:min-h-0 overflow-visible">
+             <QLAJourney />
+          </div>
+
         </div>
-      </div>
+      </main>
     </div>
   );
 }

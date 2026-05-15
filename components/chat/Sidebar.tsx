@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Plus, Menu, X, LogOut, User } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { logout } from "@/lib/auth";
 import { Conversation } from "@/lib/conversations";
@@ -26,6 +26,7 @@ export default function Sidebar({
   onToggle,
 }: SidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { collapsed, setCollapsed } = useSidebar();
   const [isMobile, setIsMobile] = useState(false);
 
@@ -65,7 +66,7 @@ export default function Sidebar({
         }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         onHoverStart={() => !isMobile && collapsed && setCollapsed(false)}
-        onHoverEnd={() => !isMobile && !collapsed && router.pathname === '/profile' && setCollapsed(true)} 
+        onHoverEnd={() => !isMobile && !collapsed && pathname === '/profile' && setCollapsed(true)} 
         // Note: I'll use the profile-specific collapse in the page component instead of router.pathname check here for simplicity
       >
         <AnimatePresence mode="wait">

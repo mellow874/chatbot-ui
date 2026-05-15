@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import Sidebar from "@/components/chat/Sidebar";
 import { Spotlight } from "@/components/ui/spotlight";
 import { SplineScene } from "@/components/ui/splite";
@@ -51,7 +51,7 @@ export default function ProfilePage() {
     }
   };
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -62,7 +62,7 @@ export default function ProfilePage() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 16 },
     visible: { 
       opacity: 1, 

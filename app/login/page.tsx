@@ -6,6 +6,7 @@ import { authenticate } from "@/lib/auth";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import VoidShader from "@/components/ui/VoidShader";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -288,10 +289,12 @@ function WelcomeOverlay() {
           border: "1px solid var(--border-ghost)",
         }}
       >
-        <img 
+        <Image 
           src="/brand/logo.png" 
           alt="QLA" 
-          className="w-16 h-16 object-contain opacity-90" 
+          width={64}
+          height={64}
+          className="object-contain opacity-90" 
           style={{ mixBlendMode: 'screen' }}
         />
       </div>

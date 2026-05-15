@@ -1,7 +1,7 @@
 /* ── FONTS ── */
 :root {
-  --font-display: 'Cormorant', Georgia, serif;
-  --font-mono:    'Geist Mono', 'JetBrains Mono', monospace;
+  --font-display: var(--font-cormorant), Georgia, serif;
+  --font-mono:    var(--font-geist-mono), 'JetBrains Mono', monospace;
   --font-body:    ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 

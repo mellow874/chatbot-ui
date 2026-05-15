@@ -5,6 +5,20 @@ import { Toaster } from "@/components/ui/toaster";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { SidebarProvider } from "@/context/SidebarContext";
 
+import { Cormorant, JetBrains_Mono } from "next/font/google";
+
+const cormorant = Cormorant({
+  subsets: ["latin"],
+  weight: ["300", "400"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
+});
+
+const geistMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  variable: "--font-geist-mono",
+});
 
 export const metadata: Metadata = {
   title: "QLA Mentor | Melsoft Holdings",
@@ -13,12 +27,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;1,300;1,400&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
-      </head>
+    <html lang="en" className={`${cormorant.variable} ${geistMono.variable} dark`} suppressHydrationWarning>
       <body className="h-screen flex flex-col overflow-hidden antialiased">
 
         <div className="relative z-10 flex h-full w-full">

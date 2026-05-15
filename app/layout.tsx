@@ -4,7 +4,6 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { SidebarProvider } from "@/context/SidebarContext";
-
 import { Cormorant, JetBrains_Mono } from "next/font/google";
 
 const cormorant = Cormorant({
@@ -19,7 +18,7 @@ const geistMono = JetBrains_Mono({
   weight: ["300", "400", "500"],
   variable: "--font-geist-mono",
 });
-
+ 
 export const metadata: Metadata = {
   title: "QLA Mentor | Melsoft Holdings",
   description: "Private AI Mentorship - Dan Peña QLA Methodology",

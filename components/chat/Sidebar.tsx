@@ -67,8 +67,36 @@ export default function Sidebar({
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         onHoverStart={() => !isMobile && collapsed && setCollapsed(false)}
         onHoverEnd={() => !isMobile && !collapsed && pathname === '/profile' && setCollapsed(true)} 
-        // Note: I'll use the profile-specific collapse in the page component instead of router.pathname check here for simplicity
       >
+        {/* LOGO HEADER */}
+        <div className="py-8 flex flex-col items-center justify-center border-b border-white/[0.04]">
+          <motion.div 
+            className="relative overflow-hidden flex items-center justify-center"
+            animate={{ width: collapsed ? 36 : 160 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            style={{ height: '40px' }}
+          >
+            <motion.img 
+              src="/melsoft_logo.png"
+              alt="Melsoft Logo"
+              className="absolute object-contain"
+              style={{ width: '160px', filter: 'brightness(1)' }}
+              initial={false}
+              animate={{ opacity: collapsed ? 0 : 1 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            />
+            <motion.img 
+              src="/melsoft_icon_M.png"
+              alt="Melsoft Icon"
+              className="absolute object-contain"
+              style={{ width: '36px', filter: 'brightness(1)' }}
+              initial={false}
+              animate={{ opacity: collapsed ? 1 : 0 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            />
+          </motion.div>
+        </div>
+
         <AnimatePresence mode="wait">
           {collapsed && !isMobile ? (
             <motion.div
@@ -78,8 +106,6 @@ export default function Sidebar({
               exit={{ opacity: 0 }}
               className="flex flex-col items-center h-full py-6 gap-8"
             >
-              {/* Logo dot */}
-              <div className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.4)]" />
               
               {/* New session */}
               <button 
@@ -124,18 +150,6 @@ export default function Sidebar({
               exit={{ opacity: 0 }}
               className="flex flex-col h-full w-[240px]"
             >
-              {/* HEADER */}
-              <div className="px-6 py-6 border-b border-white/[0.04]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-serif italic text-xl text-white/90">QLA</p>
-                    <p className="text-[9px] tracking-[0.2em] font-mono uppercase text-white/30 mt-0.5">
-                      MENTOR · VAULT
-                    </p>
-                  </div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.4)]" />
-                </div>
-              </div>
 
               {/* NEW SESSION */}
               <div className="px-4 py-4 border-b border-white/[0.04]">
